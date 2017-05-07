@@ -1,45 +1,106 @@
 #!/bin/bash
 
 TMP=/tmp/mklink-$$
+SEARCH_PATH=/media/ko/Windows8_OS/Users/ko/Pictures
 
 mkdir ${TMP}
 
-function create_link() {
+function exif_date() {
+    echo "identify -verbose $1 > ${TMP}/identity"
 	identify -verbose $1 > ${TMP}/identity
 	if [[ $? -ne 0 ]]; then
 		echo "[$1] ERROR: failed to read EXIF."
-		return
+		return 1
 	fi
 
-	file=${1##*/}
-	DATE=$(cat ${TMP}/identity \
-		| grep "exif:DateTime:" \
-		| head -n 1 \
-		| awk '{ print $2 }' \
-		| sed -e 's/:/-/g')
-	if [[ -z ${DATE} ]]; then
-		echo "	DATE: Not Found. > ${DATE}_${file}"
-	else
-		echo "	DATE: ${DATE} > ${DATE}_${file}"
-	fi
+    rm -f ${TMP}/exif_date
 
-	ln -sf $1 ../links/${DATE}_${file}
+	datetime=$(cat ${TMP}/identity \
+	    | grep "exif:DateTime:" \
+	    | head -n 1 \
+	    | awk '{print $2,$3}')
+    if [[ -n ${datetime} ]]; then
+        cat <<- EOS > ${TMP}/exif_date
+		datetime="${datetime}"
+		timestamp=
+		EOS
+		cat ${TMP}/exif_date | sed -e 's/^/> /'
+		return 0
+    fi
+
+	modify=$(cat ${TMP}/identity \
+    | grep "date:modify:" \
+    | head -n 1 \
+    | awk '{ print $2 }')
+    timestamp=$(echo ${modify} \
+    | awk -F"+" '{print $1}' \
+    | sed -e 's/T/ /' -e 's/-/:/g')
+    
+    if [[ -n "${timestamp}" ]]; then
+		cat <<- EOS > ${TMP}/exif_date
+		datetime=
+		timestamp="${timestamp}"
+		EOS
+        cat ${TMP}/exif_date | sed -e 's/^/> /'
+        return 0
+    fi
+    return 1
 }
 
-for file in "$@"
-do
-	find /media/ko/Windows8_OS/Users/ko/Pictures -iname "${file}" > ${TMP}/files
+function find_original() {
+	find ${SEARCH_PATH} -iname "$1" > ${TMP}/files
 	line=$(wc -l ${TMP}/files | awk '{ print $1 }')
 	if [[ ${line} -eq 0 ]]; then
-		echo "Not Found: ${file}"
+		echo "Not Found: $1." 1>&2
+		return
 	elif [[ ${line} -eq 1 ]]; then
-		echo "Found: ${file}"
-		create_link $(< ${TMP}/files)
+		echo "Found: $1" 1>&2
+		echo $(< ${TMP}/files)
  	else
-		echo "Hit multiple files: ${file}. Use first one."
-		cat ${TMP}/files | sed -e 's/^/\t/'
-		create_link $(head -n 1 ${TMP}/files)
+		echo "Hit multiple files: $1. Use first one." 1>&2
+		cat ${TMP}/files | sed -e 's/^/\t/' 1>&2
+		echo $(head -n 1 ${TMP}/files)
 	fi
-done
+}
+
+function main() {
+	for file in "$@"
+	do
+		echo "${file}: "
+		{
+			target=$(find_original "${file}")
+			if [[ -z ${target} ]]; then
+				echo "${file}: Original file not found. use downloaded file."
+				target=$(readlink -f ${file})
+			fi
+
+			echo "target: ${target}"
+        	exif_date ${target}
+        	if [[ $? -ne 0 ]]; then
+        	    echo "ERROR: could not extract datetime."
+        	    continue
+        	fi
+        	    
+        	eval $(< ${TMP}/exif_date)
+
+        	if [[ -n "${timestamp}" ]]; then
+        	    echo "exiftool \"-DateTimeOriginal=${timestamp}\" ${target}"
+        	    exiftool "-DateTimeOriginal=${timestamp}" ${target}
+        	    datetime=${timestamp}
+        	fi
+
+        	created=$(echo ${datetime} \
+        	| awk '{print $1}' \
+        	| sed -e 's/:/-/g')
+			echo "created: ${created}"
+
+			echo "ln -sf ${target} ../links/${created}_${file##*/}"
+			ln -sf ${target} ../links/${created}_${file##*/}
+		} |& sed -e 's/^/\t/'
+		echo
+	done
+}
+
+main "$@"
 
 rm -rf ${TMP}
