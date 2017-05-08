@@ -1,0 +1,96 @@
+syntax on
+"# set directory=~/.vim
+"# set backupdir=~/.vim
+set autochdir
+
+"-----Tab-----
+
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set expandtab
+
+"------Search------
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+set wrapscan
+set showmatch
+
+"-----Format------
+set smartindent
+set autoindent
+
+"TAB,EOF等を可視化
+set list
+set listchars=tab:>-,extends:<,trail:-
+
+" ruler and number
+set ruler
+set number
+
+" autocmd BufWritePre * :%s/\s\+$//ge
+
+
+" "--------Powerline-------
+" let g:Powerline_symbols = 'fancy'
+
+"-------syntastic-------
+execute pathogen#infect()
+
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+" let g:syntastic_python_checkers = ['pyflakes', 'pep8']
+let g:syntastic_python_checkers = ['flake8']
+let g:syntastic_loc_list_height = 3
+
+
+" ステータスラインを常に表示(0:表示しない、1:2つ以上ウィンドウがある時だけ表示)
+set laststatus=2
+" " ファイル名表示
+" set statusline=%F
+" " 変更チェック表示
+" set statusline+=%m
+" " 読み込み専用かどうか表示
+" set statusline+=%r
+" " ヘルプページなら[HELP]と表示
+" set statusline+=%h
+" " プレビューウインドウなら[Prevew]と表示
+" set statusline+=%w
+"ファイルナンバー表示
+set statusline+=[%n]
+"ホスト名表示
+set statusline+=%{matchstr(hostname(),'\\w\\+')}@
+"ファイル名表示
+set statusline+=%<%F\ 
+" fugitive
+set statusline+=%{fugitive#statusline()}
+"変更のチェック表示
+set statusline+=%m
+"読み込み専用かどうか表示
+set statusline+=%r
+"ヘルプページなら[HELP]と表示
+set statusline+=%h
+"プレビューウインドウなら[Prevew]と表示
+set statusline+=%w
+"ファイルフォーマット表示
+set statusline+=[%{&fileformat}]
+"文字コード表示
+set statusline+=[%{has('multi_byte')&&\&fileencoding!=''?&fileencoding:&encoding}]
+"ファイルタイプ表示
+set statusline+=%y
+
+
+" これ以降は右寄せ表示
+set statusline+=%=
+" file encoding
+" 現在行数/全行数
+set statusline+=[%l/%L]
+
