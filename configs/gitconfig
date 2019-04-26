@@ -1,0 +1,22 @@
+[core]
+        editor = vim
+        excludesfile = ~/.gitignore_global
+
+[merge]
+        ff = false
+
+[color]
+        ui = true
+
+[alias]
+        st = status
+        cm = commit
+        co = checkout
+        cb = checkout -b
+        b  = branch
+        l  = log --graph --decorate
+        lm = log --no-merges --date=short --pretty='format:%C(yellow)%h %C(green)%cd %C(blue)%an%C(red)%d %C(reset)%s'
+[push]
+        default = simple
+[http]
+        sslVerify = false
