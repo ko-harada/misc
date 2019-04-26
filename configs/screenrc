@@ -91,6 +91,12 @@ termcapinfo xterm 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
 # Enable non-blocking mode to better cope with flaky ssh connections.
 defnonblock 5
 
+escape ^Zz
+startup_message off
+termcapinfo xterm* ti@:te@
+altscreen on
+hardstatus alwayslastline "%{= cd} %-w%{= dd} %n %t* %{-}%+w"
+
 # ------------------------------------------------------------------------------
 # STARTUP SCREENS
 # ------------------------------------------------------------------------------
@@ -106,4 +112,3 @@ defnonblock 5
 # screen -t mail 8 mutt
 # screen -t daemon 9 tail -f /var/log/daemon.log
 
-escape ^Zz
