@@ -33,7 +33,7 @@ set number
 set cursorline
 "set cursorcolumn
 
-set colorcolumn
+set colorcolumn=80
 highlight ColorColumn guibg=#202020 ctermbg=darkgray
 
 " ステータスラインを常に表示(0:表示しない、1:2つ以上ウィンドウがある時だけ表示)
